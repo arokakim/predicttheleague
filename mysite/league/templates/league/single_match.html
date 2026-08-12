@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Match #{{ match.id }} - {{ match.home_team.name }} vs {{ match.away_team.name }}</title>
+</head>
+<h2>Gameweek {{ match.gameweek }} &bull; Match #{{ match.id }}</h2>
+<h1>{{ match.home_team.name }} <span style="color: gray;">VS</span> {{ match.away_team.name }}</h1>
+<body>
+    {% include 'league/navbar.html' %}
+
+    <!-- TEAM CONTEXT NAVIGATION BAR -->
+    <div>
+        {% if prev_match %}
+            <a href="{% url 'single_match' prev_match.id %}{% if team %}?team_id={{ team.id }}{% endif %}">&larr; Previous Match</a> | 
+        {% endif %}
+
+        {% if team %}
+            <a href="{% url 'team_detail' team.id %}">Back to {{ team.name }}'s 38 Games</a>
+        {% else %}
+            <a href="{% url 'matches_list' %}">Back to All Matches</a>
+        {% endif %}
+
+        {% if next_match %}
+            | <a href="{% url 'single_match' next_match.id %}{% if team %}?team_id={{ team.id }}{% endif %}">Next Match &rarr;</a>
+        {% endif %}
+    </div>
+
+    <hr>
+
+    <!-- MATCH CARD -->
+    <div>
+        <h2>Match #{{ match.id }}</h2>
+        <h1>{{ match.home_team.name }} <span style="color: gray;">VS</span> {{ match.away_team.name }}</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            <h3>Your Prediction:</h3>
+            <p>
+                <label>
+                    <input type="radio" name="prediction" value="H" {% if match.prediction == 'H' %}checked{% endif %}>
+                    <strong>{{ match.home_team.name }} Win (Home)</strong>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="radio" name="prediction" value="D" {% if match.prediction == 'D' %}checked{% endif %}>
+                    <strong>Draw</strong>
+                </label>
+            </p>
+            <p>
+                <label>
+                    <input type="radio" name="prediction" value="A" {% if match.prediction == 'A' %}checked{% endif %}>
+                    <strong>{{ match.away_team.name }} Win (Away)</strong>
+                </label>
+            </p>
+
+            <button type="submit" name="save_only">Save Prediction</button>
+            {% if next_match %}
+                <button type="submit" name="save_next">Save & Next Match &rarr;</button>
+            {% endif %}
+        </form>
+    </div>
+</body>
+</html>

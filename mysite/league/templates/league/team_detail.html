@@ -1,0 +1,26 @@
+{% for match in matches %}
+<!-- Inside the matches loop in team_detail.html -->
+<a href="{% url 'single_match' match.id %}?team_id={{ team.id }}">Focus View</a>
+<tr>
+    <!-- Clean 1 to 38 numbering -->
+    <td>{{ forloop.counter }}</td>
+    <td><strong>{{ match.home_team.name }}</strong></td>
+    <td><strong>{{ match.away_team.name }}</strong></td>
+    <td>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="match_id" value="{{ match.id }}">
+            <select name="prediction">
+                <option value="" {% if not match.prediction %}selected{% endif %}>-- Pick --</option>
+                <option value="H" {% if match.prediction == 'H' %}selected{% endif %}>Home Win</option>
+                <option value="D" {% if match.prediction == 'D' %}selected{% endif %}>Draw</option>
+                <option value="A" {% if match.prediction == 'A' %}selected{% endif %}>Away Win</option>
+            </select>
+    </td>
+    <td>
+            <button type="submit">Save</button>
+            <a href="{% url 'single_match' match.id %}">Focus View</a>
+        </form>
+    </td>
+</tr>
+{% endfor %}

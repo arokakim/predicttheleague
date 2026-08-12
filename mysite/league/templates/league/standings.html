@@ -1,0 +1,38 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block title %}Premier League Standings{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">League Table</h2>
+
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="text-align: left; border-bottom: 2px solid #3f445b;">
+            <th style="padding: 10px; width: 40px;">#</th>
+            <th style="padding: 10px;">Club</th>
+            <th style="padding: 10px; text-align: center;">MP</th>
+            <th style="padding: 10px; text-align: center;">W</th>
+            <th style="padding: 10px; text-align: center;">D</th>
+            <th style="padding: 10px; text-align: center;">L</th>
+            <th style="padding: 10px; text-align: center;">Pts</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in standings %}
+        <tr style="border-bottom: 1px solid #2a2d3d;">
+            <td style="padding: 10px; font-weight: bold;">{{ forloop.counter }}</td>
+            <td style="padding: 10px; display: flex; align-items: center; gap: 10px;">
+                <img src="{% static row.team.logo_url %}" class="badge-img">
+                <span>{{ row.team.name }}</span>
+            </td>
+            <td style="padding: 10px; text-align: center;">{{ row.played }}</td>
+            <td style="padding: 10px; text-align: center;">{{ row.wins }}</td>
+            <td style="padding: 10px; text-align: center;">{{ row.draws }}</td>
+            <td style="padding: 10px; text-align: center;">{{ row.losses }}</td>
+            <td style="padding: 10px; text-align: center; font-weight: bold; color: #f59e0b;">{{ row.points }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

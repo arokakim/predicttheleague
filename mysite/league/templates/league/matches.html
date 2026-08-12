@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Premier League Fixtures</title>
+</head>
+<body>
+    <nav>
+        <a href="{% url 'standings' %}">Standings Table</a> | 
+        <a href="{% url 'matches_list' %}">All 380 Matches</a>
+    </nav>
+    <hr>
+    <h1>Match Predictions</h1>
+    <a href="{% url 'standings' %}">View Standings Table</a>
+    <hr>
+
+    <table border="1" cellpadding="8">
+        <thead>
+            <tr>
+                <th>Match #</th>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Prediction</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in matches %}
+            <tr>
+                <td>{{ match.id }}</td>
+                <td><strong>{{ match.home_team.name }}</strong></td>
+                <td><strong>{{ match.away_team.name }}</strong></td>
+                <td>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="match_id" value="{{ match.id }}">
+                        <select name="prediction">
+                            <option value="" {% if not match.prediction %}selected{% endif %}>-- Pick --</option>
+                            <option value="H" {% if match.prediction == 'H' %}selected{% endif %}>Home Win</option>
+                            <option value="D" {% if match.prediction == 'D' %}selected{% endif %}>Draw</option>
+                            <option value="A" {% if match.prediction == 'A' %}selected{% endif %}>Away Win</option>
+                        </select>
+                </td>
+                <td>
+                        <button type="submit">Save</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

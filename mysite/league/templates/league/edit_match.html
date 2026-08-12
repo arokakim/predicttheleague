@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Match Details</title>
+</head>
+<body>
+    {% include 'league/navbar.html' %}
+
+    <h1>Edit Details: {{ match.home_team.name }} vs {{ match.away_team.name }}</h1>
+
+    <form method="POST">
+        {% csrf_token %}
+        <p>
+            <label>Gameweek:</label><br>
+            <input type="number" name="gameweek" value="{{ match.gameweek }}">
+        </p>
+        <p>
+            <label>Match Date:</label><br>
+            <input type="date" name="match_date" value="{{ match.match_date|date:'Y-m-d' }}">
+        </p>
+        <p>
+            <label>Kickoff Time:</label><br>
+            <input type="time" name="kickoff_time" value="{{ match.kickoff_time|time:'H:i' }}">
+        </p>
+        <p>
+            <label>Venue / Stadium:</label><br>
+            <input type="text" name="venue" value="{{ match.venue|default:'' }}" placeholder="e.g. Anfield">
+        </p>
+        <button type="submit">Save Changes</button>
+        <a href="{% url 'gameweek_builder' %}">Cancel</a>
+    </form>
+</body>
+</html>
