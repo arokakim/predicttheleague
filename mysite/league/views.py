@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Team, MatchPrediction
 from .utils import calculate_league_table  # Import modular logic helper
+from django.contrib.auth import login
+from django.contrib.auth.models import User
+from .models import Team, UserProfile
 
 
 def standings(request):
@@ -90,3 +93,27 @@ def match_focus(request, match_id):
         'next_match_id': same_gw_matches[current_index + 1] if current_index < len(same_gw_matches) - 1 else None,
     }
     return render(request, 'league/match_focus.html', context)
+
+def register(request):
+    """
+    Simple, anonymous sign-up requiring only username, password, and favorite team.
+    """
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        team_id = request.POST.get("favorite_team")
+
+        if username and password:
+            # 1. Create standard Django User (No email required)
+            user = User.objects.create_user(username=username, password=password)
+            
+            # 2. Attach Favorite Team Badge Profile
+            fav_team = Team.objects.filter(id=team_id).first() if team_id else None
+            UserProfile.objects.create(user=user, favorite_team=fav_team)
+
+            # 3. Log the user in immediately
+            login(request, user)
+            return redirect('standings')
+
+    teams = Team.objects.all().order_by('name')
+    return render(request, 'league/register.html', {'teams': teams})

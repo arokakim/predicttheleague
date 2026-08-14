@@ -1,0 +1,39 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - Match Predictor{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 40px auto; padding: 25px; border: 1px solid #3f445b; border-radius: 10px; background-color: #1e2130;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Create Profile</h2>
+
+    <form method="post" action="{% url 'register' %}">
+        {% csrf_token %}
+
+        <!-- Username -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Username</label>
+            <input type="text" name="username" required style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #3f445b;">
+        </div>
+
+        <!-- Password -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Password</label>
+            <input type="password" name="password" required style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #3f445b;">
+        </div>
+
+        <!-- Favorite Club Badge Selection -->
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px;">Favorite Club (Your Avatar)</label>
+            <select name="favorite_team" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #3f445b;">
+                <option value="">-- Select Your Team --</option>
+                {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" style="width: 100%; padding: 10px; font-weight: bold; cursor: pointer;">Sign Up</button>
+    </form>
+</div>
+{% endblock %}

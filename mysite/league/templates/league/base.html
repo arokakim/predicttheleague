@@ -5,49 +5,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Premier League Predictor{% endblock %}</title>
-    <!-- Simple Modern CSS Framework -->
+
+    <!-- Water.css (Dark Theme) for clean tables, forms, and typography -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
+
     <style>
-        body { max-width: 900px; margin: 0 auto; padding: 20px; }
-        nav { display: flex; gap: 15px; align-items: center; justify-content: space-between; background: #1f2937; padding: 12px 20px; border-radius: 8px; margin-bottom: 25px; }
-        nav a { color: #fff; text-decoration: none; font-weight: bold; }
-        nav a:hover { text-decoration: underline; }
-        .gw-select-form { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
-        .gw-select-form select { padding: 4px 8px; margin: 0; }
-        .badge-img { width: 32px; height: 32px; vertical-align: middle; object-fit: contain; }
-        .match-card { background: #2a2d3d; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #3f445b; }
-        .match-row { display: flex; justify-content: space-between; align-items: center; }
-        .team-box { width: 35%; display: flex; align-items: center; gap: 10px; }
-        .team-box.away { justify-content: flex-end; }
-        .vs-box { text-align: center; width: 25%; }
-        .pred-options { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        /* Base page layout overrides */
+        body { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+
+        /* Image sizing safeguards so badges don't overflow */
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .badge-img { 
+            width: 32px !important; 
+            height: 32px !important; 
+            vertical-align: middle; 
+            object-fit: contain; 
+        }
+
+        /* Table structural consistency */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td, th {
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Universal Navigation Bar -->
-    <nav>
-        <div>
-            <a href="{% url 'standings' %}">📊 Standings Table</a>
-            <span style="color: #6b7280; margin: 0 8px;">|</span>
-            <a href="{% url 'gameweek_builder' %}">⚽ Match Predictor</a>
-        </div>
-
-        <!-- Quick Gameweek Jump Dropdown -->
-        <form action="" method="get" class="gw-select-form" onchange="if(this.gw.value) window.location.href='/manager/gw/' + this.gw.value + '/'">
-            <label for="gw-select" style="color: #fff; font-size: 0.9em;">Jump to:</label>
-            <select id="gw-select" name="gw">
-                {% for w in all_gameweeks|default:"1234567891011121314151617181920212223242526272829303132333435363738" %}
-                    <option value="{{ forloop.counter }}" {% if current_gw == forloop.counter %}selected{% endif %}>
-                        Gameweek {{ forloop.counter }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
-    </nav>
+    <!-- Universal Dynamic Navbar Component -->
+    {% include 'league/navbar.html' %}
 
     <!-- Page Content Block -->
-    <main>
+    <main style="margin-top: 20px;">
         {% block content %}
         {% endblock %}
     </main>

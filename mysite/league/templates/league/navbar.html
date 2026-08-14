@@ -1,5 +1,35 @@
-<nav>
-    <a href="{% url 'standings' %}">Standings Table</a> | 
-    <a href="{% url 'matches_list' %}">All 380 Matches</a>
+{% load static %}
+
+<nav style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #1e2130; border-bottom: 1px solid #3f445b;">
+    
+    <!-- Left Side: App Brand / Core Links -->
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <strong style="font-size: 1.2em; color: #f59e0b;">⚽ MatchPredictor</strong>
+        <a href="{% url 'standings' %}" style="text-decoration: none; color: #fff;">Standings</a>
+        <a href="{% url 'gameweek_builder' %}" style="text-decoration: none; color: #fff;">Predictor</a>
+    </div>
+
+    <!-- Right Side: User Profile & Auth Status -->
+    <div style="display: flex; align-items: center; gap: 15px;">
+        {% if user.is_authenticated %}
+            <!-- Display Favorite Club Logo Avatar -->
+            {% if user.profile.favorite_team and user.profile.favorite_team.logo_url %}
+                <img src="{% static user.profile.favorite_team.logo_url %}" alt="Avatar" style="width: 28px; height: 28px; object-fit: contain;">
+            {% endif %}
+
+            <!-- Display Username -->
+            <span style="font-weight: bold; color: #10b981;">{{ user.username }}</span>
+
+            <!-- Logout Form (Django 4.2+ / 5.0+ standard) -->
+            <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
+                {% csrf_token %}
+                <button type="submit" style="background: none; border: none; color: #9ca3af; text-decoration: underline; cursor: pointer; font-size: 0.9em; padding: 0;">Logout</button>
+            </form>
+        {% else %}
+            <!-- Guest Links -->
+            <a href="{% url 'register' %}" style="padding: 6px 14px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em;">Sign Up</a>
+            <a href="{% url 'login' %}" style="font-size: 0.9em; color: #9ca3af; text-decoration: none;">Login</a>
+        {% endif %}
+    </div>
+
 </nav>
-<hr>
