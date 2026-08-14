@@ -15,6 +15,9 @@
             <th style="padding: 10px; text-align: center;">W</th>
             <th style="padding: 10px; text-align: center;">D</th>
             <th style="padding: 10px; text-align: center;">L</th>
+            <th style="padding: 10px; text-align: center;">GF</th>
+            <th style="padding: 10px; text-align: center;">GA</th>
+            <th style="padding: 10px; text-align: center;">GD</th>
             <th style="padding: 10px; text-align: center;">Pts</th>
         </tr>
     </thead>
@@ -30,6 +33,9 @@
             <td style="padding: 10px; text-align: center;">{{ row.wins }}</td>
             <td style="padding: 10px; text-align: center;">{{ row.draws }}</td>
             <td style="padding: 10px; text-align: center;">{{ row.losses }}</td>
+            <td style="padding: 10px; text-align: center;">{{ row.gf }}</td>
+            <td style="padding: 10px; text-align: center;">{{ row.ga }}</td>
+            <td style="padding: 10px; text-align: center;">{% if row.gd > 0 %}+{% endif %}{{ row.gd }}</td>
             <td style="padding: 10px; text-align: center; font-weight: bold; color: #f59e0b;">{{ row.points }}</td>
         </tr>
         {% endfor %}

@@ -6,57 +6,46 @@
 {% block content %}
 <p><a href="{% url 'gameweek_builder_gw' gw=match.gameweek %}">← Back to Gameweek {{ match.gameweek }}</a></p>
 
-<div class="match-card" style="text-align: center; padding: 30px;">
-    <p style="color: #9ca3af; font-size: 0.9em; margin-bottom: 10px;">
-        GAMEWEEK {{ match.gameweek }} • {{ match.match_date|default:"TBD" }} @ {{ match.kickoff_time|default:"TBD" }}
+<div class="match-card" style="text-align: center; padding: 30px; border: 1px solid #3f445b; border-radius: 10px; background-color: #1e2130;">
+    <p style="color: #9ca3af; font-size: 0.9em; margin-bottom: 20px;">
+        GAMEWEEK {{ match.gameweek }}
     </p>
 
-    <div style="display: flex; justify-content: space-around; align-items: center; margin: 25px 0;">
-        <!-- Home Team -->
-        <div style="flex: 1;">
-            <img src="{% static match.home_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
-            <h2 style="margin-top: 10px;">{{ match.home_team.name }}</h2>
-            <p style="color: #9ca3af; font-size: 0.85em;">Home</p>
-        </div>
-
-        <!-- VS Divider -->
-        <div style="flex: 0.5;">
-            <h1 style="color: #f59e0b; margin: 0;">VS</h1>
-        </div>
-
-        <!-- Away Team -->
-        <div style="flex: 1;">
-            <img src="{% static match.away_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
-            <h2 style="margin-top: 10px;">{{ match.away_team.name }}</h2>
-            <p style="color: #9ca3af; font-size: 0.85em;">Away</p>
-        </div>
-    </div>
-
-    <hr style="border-color: #3f445b; margin: 20px 0;">
-
-    <!-- Prediction Form -->
     <form method="post" action="{% url 'match_focus' match_id=match.id %}">
         {% csrf_token %}
-        <h3>Your Match Prediction</h3>
-        <div class="pred-options" style="font-size: 1.1em; gap: 20px; margin-bottom: 20px;">
-            <label>
-                <input type="radio" name="prediction" value="H" {% if match.prediction == 'H' %}checked{% endif %}>
-                Home Win ({{ match.home_team.name }})
-            </label>
-            <label>
-                <input type="radio" name="prediction" value="D" {% if match.prediction == 'D' %}checked{% endif %}>
-                Draw
-            </label>
-            <label>
-                <input type="radio" name="prediction" value="A" {% if match.prediction == 'A' %}checked{% endif %}>
-                Away Win ({{ match.away_team.name }})
-            </label>
+        
+        <div style="display: flex; justify-content: space-around; align-items: center; margin: 25px 0;">
+            <!-- Home Team -->
+            <div style="flex: 1;">
+                <img src="{% static match.home_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
+                <h2 style="margin-top: 10px; font-size: 1.3em;">{{ match.home_team.name }}</h2>
+                <div style="margin-top: 15px;">
+                    <input type="number" name="home_goals" value="{{ match.home_goals|default:'' }}" min="0" max="20" placeholder="0" style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b;">
+                </div>
+            </div>
+
+            <!-- VS Divider -->
+            <div style="flex: 0.4;">
+                <h1 style="color: #f59e0b; margin: 0;">VS</h1>
+            </div>
+
+            <!-- Away Team -->
+            <div style="flex: 1;">
+                <img src="{% static match.away_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
+                <h2 style="margin-top: 10px; font-size: 1.3em;">{{ match.away_team.name }}</h2>
+                <div style="margin-top: 15px;">
+                    <input type="number" name="away_goals" value="{{ match.away_goals|default:'' }}" min="0" max="20" placeholder="0" style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b;">
+                </div>
+            </div>
         </div>
-        <button type="submit" style="padding: 10px 25px; font-weight: bold;">Save Prediction</button>
+
+        <div style="margin-top: 25px;">
+            <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em; cursor: pointer;">Save Score</button>
+        </div>
     </form>
 </div>
 
-<!-- Prev / Next Match Controls in Same GW -->
+<!-- Prev / Next Match Controls -->
 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
     {% if prev_match_id %}
         <a href="{% url 'match_focus' match_id=prev_match_id %}">← Previous Match</a>

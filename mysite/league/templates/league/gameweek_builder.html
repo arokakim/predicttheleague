@@ -24,47 +24,38 @@
     {% csrf_token %}
     
     {% for match in matches %}
-    <div class="match-card">
-        <div class="match-row">
+    <div class="match-card" style="border: 1px solid #3f445b; padding: 15px; margin-bottom: 15px; border-radius: 8px;">
+        <div class="match-row" style="display: flex; justify-content: space-between; align-items: center;">
+            
             <!-- Home Team -->
-            <div class="team-box">
-                <img src="{% static match.home_team.logo_url %}" class="badge-img">
+            <div class="team-box" style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <img src="{% static match.home_team.logo_url %}" class="badge-img" style="width: 32px; height: 32px;">
                 <strong>{{ match.home_team.name }}</strong>
             </div>
 
-            <!-- Match Metadata & Focus Link -->
-            <div class="vs-box">
-                <span style="font-weight: bold; color: #f59e0b;">VS</span><br>
-                <small style="color: #9ca3af;">
-                    {{ match.match_date|default:"TBD" }} {{ match.kickoff_time|default:"" }}
-                </small><br>
-                <a href="{% url 'match_focus' match_id=match.id %}" style="font-size: 0.8em; text-decoration: underline;">🔍 Focus View</a>
+            <!-- Score Inputs / VS Box -->
+            <div class="vs-box" style="text-align: center; flex: 0.8; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <input type="number" name="home_goals_{{ match.id }}" value="{{ match.home_goals|default:'' }}" min="0" max="20" style="width: 45px; text-align: center; padding: 5px; font-weight: bold;">
+                <span style="font-weight: bold; color: #f59e0b;">-</span>
+                <input type="number" name="away_goals_{{ match.id }}" value="{{ match.away_goals|default:'' }}" min="0" max="20" style="width: 45px; text-align: center; padding: 5px; font-weight: bold;">
             </div>
 
             <!-- Away Team -->
-            <div class="team-box away">
+            <div class="team-box away" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex: 1;">
                 <strong>{{ match.away_team.name }}</strong>
-                <img src="{% static match.away_team.logo_url %}" class="badge-img">
+                <img src="{% static match.away_team.logo_url %}" class="badge-img" style="width: 32px; height: 32px;">
             </div>
+
         </div>
 
-        <!-- Quick Predictions -->
-        <div class="pred-options">
-            <label>
-                <input type="radio" name="prediction_{{ match.id }}" value="H" {% if match.prediction == 'H' %}checked{% endif %}> H
-            </label>
-            <label>
-                <input type="radio" name="prediction_{{ match.id }}" value="D" {% if match.prediction == 'D' %}checked{% endif %}> D
-            </label>
-            <label>
-                <input type="radio" name="prediction_{{ match.id }}" value="A" {% if match.prediction == 'A' %}checked{% endif %}> A
-            </label>
+        <div style="text-align: center; margin-top: 8px;">
+            <a href="{% url 'match_focus' match_id=match.id %}" style="font-size: 0.8em; color: #9ca3af; text-decoration: underline;">🔍 Focus View</a>
         </div>
     </div>
     {% endfor %}
 
-    <div style="text-align: center; margin-top: 20px;">
-        <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em;">Save All Gameweek {{ current_gw }} Predictions</button>
+    <div style="text-align: center; margin-top: 25px;">
+        <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em; cursor: pointer;">Save Gameweek {{ current_gw }} Scores</button>
     </div>
 </form>
 {% endblock %}
