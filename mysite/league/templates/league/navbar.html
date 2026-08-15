@@ -2,42 +2,36 @@
 
 <nav style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background-color: #1e2130; border-bottom: 1px solid #3f445b; font-family: inherit;">
     
-    <!-- Left Side: App Brand & Primary Navigation -->
+    <!-- Left Side: Brand & Core Links -->
     <div style="display: flex; align-items: center; gap: 20px;">
-        <a href="{% url 'standings' %}" style="text-decoration: none; font-weight: bold; font-size: 1.2em; color: #f59e0b; margin-right: 10px;">
+        <a href="{% url 'home' %}" style="text-decoration: none; font-weight: bold; font-size: 1.2em; color: #f59e0b; margin-right: 10px;">
             ⚽ MatchPredictor
         </a>
+        <a href="{% url 'home' %}" style="text-decoration: none; color: #e5e7eb; font-weight: 500;">Home</a>
         <a href="{% url 'standings' %}" style="text-decoration: none; color: #e5e7eb; font-weight: 500;">Standings</a>
         <a href="{% url 'gameweek_builder' %}" style="text-decoration: none; color: #e5e7eb; font-weight: 500;">Predictor</a>
         <a href="{% url 'leaderboard' %}" style="text-decoration: none; color: #e5e7eb; font-weight: 500;">🏆 Leaderboard</a>
     </div>
 
-    <!-- Right Side: Account Actions & Auth Status -->
+    <!-- Right Side: Profile & Auth Actions -->
     <div style="display: flex; align-items: center; gap: 15px;">
         {% if user.is_authenticated %}
-            <!-- User Profile Link (Badge + Username) -->
             <a href="{% url 'profile' %}" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: #10b981; font-weight: bold;">
                 {% if user.userprofile.favorite_team and user.userprofile.favorite_team.logo_url %}
-                    <img src="{% static user.userprofile.favorite_team.logo_url %}" alt="{{ user.userprofile.favorite_team.name }} Badge" class="badge-img">
+                    <img src="{% static user.userprofile.favorite_team.logo_url %}" alt="Badge" class="badge-img">
                 {% else %}
                     <span>👤</span>
                 {% endif %}
                 <span>{{ user.username }}</span>
             </a>
 
-            <!-- Logout Form -->
             <form method="post" action="{% url 'logout' %}" style="display: inline; margin: 0;">
                 {% csrf_token %}
-                <button type="submit" style="background: none; border: none; color: #9ca3af; text-decoration: underline; cursor: pointer; font-size: 0.9em; padding: 0;">
-                    Logout
-                </button>
+                <button type="submit" style="background: none; border: none; color: #9ca3af; text-decoration: underline; cursor: pointer; font-size: 0.9em;">Logout</button>
             </form>
         {% else %}
-            <!-- Guest Actions -->
             <a href="{% url 'login' %}" style="font-size: 0.9em; color: #9ca3af; text-decoration: none;">Login</a>
-            <a href="{% url 'register' %}" style="padding: 6px 14px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em;">
-                Sign Up
-            </a>
+            <a href="{% url 'register' %}" style="padding: 6px 14px; background-color: #10b981; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 0.9em;">Sign Up</a>
         {% endif %}
     </div>
 

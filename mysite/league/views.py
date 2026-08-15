@@ -156,3 +156,52 @@ def profile_view(request):
         'profile': profile,
         'teams': teams
     })
+
+def home_view(request):
+    # Handle home page prediction updates
+    if request.method == 'POST' and request.user.is_authenticated:
+        match_id = request.POST.get('match_id')
+        home_goals = request.POST.get('home_goals')
+        away_goals = request.POST.get('away_goals')
+
+        if match_id and home_goals is not None and away_goals is not None:
+            match_obj = MatchPrediction.objects.filter(id=match_id).first()
+            if match_obj:
+                pred_rel = getattr(match_obj, 'predictions', None) or getattr(match_obj, 'prediction_set', None)
+                if pred_rel is not None:
+                    pred, created = pred_rel.get_or_create(user=request.user)
+                    pred.home_goals = int(home_goals)
+                    pred.away_goals = int(away_goals)
+                    pred.save()
+                else:
+                    match_obj.home_goals = int(home_goals)
+                    match_obj.away_goals = int(away_goals)
+                    match_obj.save()
+                
+                messages.success(request, f"Saved prediction for {match_obj.home_team.name} vs {match_obj.away_team.name}!")
+                return redirect('home')
+
+    # 1. Fetch live matches if actively playing
+    live_matches = MatchPrediction.objects.filter(is_live=True) if hasattr(MatchPrediction, 'is_live') else []
+
+    # 2. Automatically display ONLY the current active/unplayed Gameweek
+    all_unplayed = MatchPrediction.objects.filter(home_goals__isnull=True)
+    
+    # Grab the current Gameweek from the first unplayed match
+    first_unplayed = all_unplayed.first()
+    current_gw = getattr(first_unplayed, 'gameweek', None) if first_unplayed else None
+
+    if current_gw is not None:
+        upcoming_matches = all_unplayed.filter(gameweek=current_gw)
+    else:
+        upcoming_matches = all_unplayed[:10]  # Fallback cap
+
+    # 3. Top Leaderboard
+    top_predictors = UserProfile.objects.all().order_by('-points')[:5] if hasattr(UserProfile, 'points') else UserProfile.objects.all()[:5]
+
+    return render(request, 'league/home.html', {
+        'live_matches': live_matches,
+        'upcoming_matches': upcoming_matches,
+        'current_gw': current_gw,
+        'top_predictors': top_predictors,
+    })

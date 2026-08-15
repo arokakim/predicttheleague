@@ -1,4 +1,6 @@
-# league/utils.py (or top of views.py)
+# league/utils.py
+
+from .models import UserProfile  # Adjust model import if needed
 
 def compute_match_outcome(home_goals, away_goals):
     """
@@ -91,3 +93,59 @@ def calculate_league_table(teams, matches):
     ))
 
     return standings_list
+
+
+# ==========================================
+# NEW: USER LEADERBOARD SCORING ENGINE
+# ==========================================
+
+def evaluate_user_predictions_for_match(match):
+    """
+    Compares real finished match scorelines against submitted user predictions
+    and updates global UserProfile leaderboard points.
+    
+    Rules:
+    - Exact Score (e.g. Pred 2-1, Result 2-1): 3 Points
+    - Correct Outcome (e.g. Pred 2-0, Result 3-1): 1 Point
+    - Incorrect Outcome: 0 Points
+    """
+    if match.home_goals is None or match.away_goals is None:
+        return
+
+    actual_outcome, _, _ = compute_match_outcome(match.home_goals, match.away_goals)
+
+    # Grab predictions associated with this match
+    predictions = getattr(match, 'predictions', None) or getattr(match, 'prediction_set', None)
+    if not predictions:
+        return
+
+    for pred in predictions.all():
+        if getattr(pred, 'is_scored', False):
+            continue
+
+        pred_home = pred.home_goals
+        pred_away = pred.away_goals
+
+        if pred_home is None or pred_away is None:
+            continue
+
+        pred_outcome, _, _ = compute_match_outcome(pred_home, pred_away)
+        points_awarded = 0
+
+        # Exact Scoreline Bonus
+        if pred_home == match.home_goals and pred_away == match.away_goals:
+            points_awarded = 3
+        # Correct Outcome Bonus
+        elif pred_outcome == actual_outcome:
+            points_awarded = 1
+
+        # Award points to user profile
+        profile, _ = UserProfile.objects.get_or_create(user=pred.user)
+        current_pts = getattr(profile, 'points', 0) or 0
+        profile.points = current_pts + points_awarded
+        profile.save()
+
+        # Mark prediction as scored
+        if hasattr(pred, 'is_scored'):
+            pred.is_scored = True
+            pred.save()

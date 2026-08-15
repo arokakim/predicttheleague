@@ -1,0 +1,104 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block title %}MatchPredictor | Home Hub{% endblock %}
+
+{% block content %}
+<div style="max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px;">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="padding: 12px; background-color: #10b981; color: white; border-radius: 6px; font-weight: bold;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- 🔴 Dynamic Live Games Banner (Appears when games are in-play) -->
+    {% if live_matches %}
+        <div style="background-color: #7f1d1d; border: 2px solid #ef4444; padding: 20px; border-radius: 8px;">
+            <h2 style="margin: 0 0 15px 0; color: #f87171; display: flex; align-items: center; gap: 10px;">
+                <span style="animation: pulse 1s infinite;">🔴</span> LIVE MATCH UPDATES
+            </h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for m in live_matches %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e2130; padding: 15px; border-radius: 6px;">
+                        <span style="font-weight: bold; width: 40%; text-align: right;">{{ m.home_team.name }}</span>
+                        <span style="font-size: 1.4em; font-weight: bold; color: #f59e0b; padding: 0 15px;">
+                            {{ m.home_goals|default:0 }} - {{ m.away_goals|default:0 }}
+                        </span>
+                        <span style="font-weight: bold; width: 40%; text-align: left;">{{ m.away_team.name }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Main Grid: Upcoming Matches & Interactive Predictor -->
+    <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 20px;">
+        
+        <!-- Interactive Upcoming Fixtures -->
+        <div style="background-color: #1e2130; padding: 20px; border-radius: 8px; border: 1px solid #3f445b;">
+            <h3 style="margin-top: 0; color: #10b981;">📅 Upcoming Matches & Predictor</h3>
+            
+            {% if upcoming_matches %}
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    {% for m in upcoming_matches %}
+                        <form method="POST" style="display: flex; align-items: center; justify-content: space-between; background: #2a2d3d; padding: 12px; border-radius: 6px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="match_id" value="{{ m.id }}">
+
+                            <!-- Home Team -->
+                            <span style="font-weight: bold; width: 35%; text-align: right; font-size: 0.95em;">
+                                {{ m.home_team.name }}
+                            </span>
+
+                            <!-- Goals Input Controls -->
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <input type="number" name="home_goals" min="0" max="15" required style="width: 40px; text-align: center; padding: 5px; font-weight: bold;">
+                                <span style="font-weight: bold; color: #9ca3af;">:</span>
+                                <input type="number" name="away_goals" min="0" max="15" required style="width: 40px; text-align: center; padding: 5px; font-weight: bold;">
+                            </div>
+
+                            <!-- Away Team -->
+                            <span style="font-weight: bold; width: 35%; text-align: left; font-size: 0.95em;">
+                                {{ m.away_team.name }}
+                            </span>
+
+                            <!-- Action Button -->
+                            {% if user.is_authenticated %}
+                                <button type="submit" style="padding: 6px 12px; background-color: #f59e0b; color: #1e2130; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                                    Save
+                                </button>
+                            {% endif %}
+                        </form>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: #9ca3af;">No upcoming fixtures scheduled.</p>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar: Top Predictors -->
+        <div style="background-color: #1e2130; padding: 20px; border-radius: 8px; border: 1px solid #3f445b; height: fit-content;">
+            <h3 style="margin-top: 0; color: #f59e0b;">🏆 Top Predictors</h3>
+            {% if top_predictors %}
+                <ol style="padding-left: 20px; margin: 0;">
+                    {% for profile in top_predictors %}
+                        <li style="padding: 6px 0; border-bottom: 1px solid #2d3248;">
+                            <strong>{{ profile.user.username }}</strong>
+                            <span style="float: right; color: #10b981; font-weight: bold;">
+                                {{ profile.points|default:"0" }} pts
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <p style="color: #9ca3af;">No points scored yet.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
