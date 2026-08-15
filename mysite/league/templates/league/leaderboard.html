@@ -1,0 +1,44 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block title %}Leaderboard | Match Predictor{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">🏆 Global Predictor Leaderboard</h2>
+
+<table>
+    <thead>
+        <tr style="text-align: left; border-bottom: 2px solid #3f445b;">
+            <th style="padding: 10px; width: 50px;">Rank</th>
+            <th style="padding: 10px;">User</th>
+            <th style="padding: 10px;">Favorite Club</th>
+            <th style="padding: 10px; text-align: center;">Total Points</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for profile in profiles %}
+        <tr style="border-bottom: 1px solid #2a2d3d;">
+            <td style="padding: 10px; font-weight: bold;">#{{ forloop.counter }}</td>
+            <td style="padding: 10px; font-weight: bold; color: #3b82f6;">
+                {{ profile.user.username }}
+            </td>
+            <td style="padding: 10px; display: flex; align-items: center; gap: 10px;">
+                {% if profile.favorite_team and profile.favorite_team.logo_url %}
+                    <img src="{% static profile.favorite_team.logo_url %}" class="badge-img" alt="{{ profile.favorite_team.name }}">
+                    <span>{{ profile.favorite_team.name }}</span>
+                {% else %}
+                    <span style="color: #9ca3af;">None Selected</span>
+                {% endif %}
+            </td>
+            <td style="padding: 10px; text-align: center; font-weight: bold; color: #f59e0b;">
+                {{ profile.points|default:"0" }} pts
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" style="text-align: center; padding: 20px; color: #9ca3af;">No users registered yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

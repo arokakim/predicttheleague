@@ -4,6 +4,8 @@ from .utils import calculate_league_table  # Import modular logic helper
 from django.contrib.auth import login
 from django.contrib.auth.models import User
 from .models import Team, UserProfile
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 def standings(request):
@@ -117,3 +119,40 @@ def register(request):
 
     teams = Team.objects.all().order_by('name')
     return render(request, 'league/register.html', {'teams': teams})
+
+def leaderboard(request):
+    # Fetch user profiles ordered by prediction points (highest first)
+    # Falls back to points or total_points depending on your UserProfile model field
+    profiles = UserProfile.objects.all()
+    
+    # Sort profiles by points if available, otherwise default to list
+    if hasattr(UserProfile, 'points'):
+        profiles = profiles.order_by('-points')
+    elif hasattr(UserProfile, 'total_points'):
+        profiles = profiles.order_by('-total_points')
+
+    return render(request, 'league/leaderboard.html', {'profiles': profiles})
+
+@login_required
+def profile_view(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    teams = Team.objects.all().order_by('name')
+
+    if request.method == 'POST':
+        favorite_team_id = request.POST.get('favorite_team')
+        password_hint = request.POST.get('password_hint', '')
+
+        if favorite_team_id:
+            profile.favorite_team = Team.objects.get(id=favorite_team_id)
+        
+        if hasattr(profile, 'password_hint'):
+            profile.password_hint = password_hint
+            
+        profile.save()
+        messages.success(request, 'Profile updated successfully!')
+        return redirect('profile')
+
+    return render(request, 'league/profile.html', {
+        'profile': profile,
+        'teams': teams
+    })
