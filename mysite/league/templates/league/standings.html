@@ -6,39 +6,51 @@
 {% block content %}
 <h2 style="margin-bottom: 20px;">League Table</h2>
 
-<table style="width: 100%; border-collapse: collapse;">
-    <thead>
-        <tr style="text-align: left; border-bottom: 2px solid #3f445b;">
-            <th style="padding: 10px; width: 40px;">#</th>
-            <th style="padding: 10px;">Club</th>
-            <th style="padding: 10px; text-align: center;">MP</th>
-            <th style="padding: 10px; text-align: center;">W</th>
-            <th style="padding: 10px; text-align: center;">D</th>
-            <th style="padding: 10px; text-align: center;">L</th>
-            <th style="padding: 10px; text-align: center;">GF</th>
-            <th style="padding: 10px; text-align: center;">GA</th>
-            <th style="padding: 10px; text-align: center;">GD</th>
-            <th style="padding: 10px; text-align: center;">Pts</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in standings %}
-        <tr style="border-bottom: 1px solid #2a2d3d;">
-            <td style="padding: 10px; font-weight: bold;">{{ forloop.counter }}</td>
-            <td style="padding: 10px; display: flex; align-items: center; gap: 10px;">
-                <img src="{% static row.team.logo_url %}" class="badge-img">
-                <span>{{ row.team.name }}</span>
-            </td>
-            <td style="padding: 10px; text-align: center;">{{ row.played }}</td>
-            <td style="padding: 10px; text-align: center;">{{ row.wins }}</td>
-            <td style="padding: 10px; text-align: center;">{{ row.draws }}</td>
-            <td style="padding: 10px; text-align: center;">{{ row.losses }}</td>
-            <td style="padding: 10px; text-align: center;">{{ row.gf }}</td>
-            <td style="padding: 10px; text-align: center;">{{ row.ga }}</td>
-            <td style="padding: 10px; text-align: center;">{% if row.gd > 0 %}+{% endif %}{{ row.gd }}</td>
-            <td style="padding: 10px; text-align: center; font-weight: bold; color: #f59e0b;">{{ row.points }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; white-space: nowrap;">
+        <thead>
+            <tr style="text-align: left; border-bottom: 2px solid #3f445b;">
+                <th style="padding: 12px 10px; width: 40px; text-align: center;">#</th>
+                <th style="padding: 12px 10px;">Club</th>
+                <th style="padding: 12px 10px; text-align: center;">MP</th>
+                <th style="padding: 12px 10px; text-align: center;">W</th>
+                <th style="padding: 12px 10px; text-align: center;">D</th>
+                <th style="padding: 12px 10px; text-align: center;">L</th>
+                <th style="padding: 12px 10px; text-align: center;">GF</th>
+                <th style="padding: 12px 10px; text-align: center;">GA</th>
+                <th style="padding: 12px 10px; text-align: center;">GD</th>
+                <th style="padding: 12px 10px; text-align: center;">Pts</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in standings %}
+            <tr style="border-bottom: 1px solid #2a2d3d;">
+                <td style="padding: 12px 10px; font-weight: bold; text-align: center;">{{ forloop.counter }}</td>
+                <td style="padding: 12px 10px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        {% if row.team.logo_url %}
+                            {% if "http" in row.team.logo_url %}
+                                <img src="{{ row.team.logo_url }}" alt="{{ row.team.name }}" style="width: 25px; height: 25px; object-fit: contain;">
+                            {% else %}
+                                <img src="{% static row.team.logo_url %}" alt="{{ row.team.name }}" style="width: 25px; height: 25px; object-fit: contain;">
+                            {% endif %}
+                        {% else %}
+                            <div style="width: 25px; height: 25px;"></div>
+                        {% endif %}
+                        <span style="font-weight: 600; white-space: nowrap;">{{ row.team.name }}</span>
+                    </div>
+                </td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.played }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.wins }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.draws }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.losses }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.gf }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{{ row.ga }}</td>
+                <td style="padding: 12px 10px; text-align: center;">{% if row.gd > 0 %}+{% endif %}{{ row.gd }}</td>
+                <td style="padding: 12px 10px; text-align: center; font-weight: bold; color: #f59e0b;">{{ row.points }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

@@ -4,58 +4,112 @@
 {% block title %}Gameweek {{ current_gw }} Predictor{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    {% if prev_gw %}
-        <a href="{% url 'gameweek_builder_gw' gw=prev_gw %}">← Gameweek {{ prev_gw }}</a>
-    {% else %}
-        <span></span>
-    {% endif %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 20px 10px; font-family: system-ui, -apple-system, sans-serif;">
 
-    <h2>Gameweek {{ current_gw }} Fixtures</h2>
+    <!-- Gameweek Navigation Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1a1d24; padding: 12px 20px; border-radius: 8px; border: 1px solid #2d323e; margin-bottom: 20px;">
+        {% if prev_gw %}
+            <a href="{% url 'gameweek_builder_gw' gw=prev_gw %}" style="color: #f59e0b; text-decoration: none; font-weight: bold; font-size: 0.9rem;">
+                &larr; Gameweek {{ prev_gw }}
+            </a>
+        {% else %}
+            <span style="visibility: hidden;">&larr; Previous</span>
+        {% endif %}
 
-    {% if next_gw %}
-        <a href="{% url 'gameweek_builder_gw' gw=next_gw %}">Gameweek {{ next_gw }} →</a>
-    {% else %}
-        <span></span>
-    {% endif %}
-</div>
+        <h2 style="color: #ffffff; margin: 0; font-size: 1.25rem; font-weight: bold; text-align: center;">
+            Gameweek {{ current_gw }} Fixtures
+        </h2>
 
-<form method="post" action="{% url 'gameweek_builder_gw' gw=current_gw %}">
-    {% csrf_token %}
-    
-    {% for match in matches %}
-    <div class="match-card" style="border: 1px solid #3f445b; padding: 15px; margin-bottom: 15px; border-radius: 8px;">
-        <div class="match-row" style="display: flex; justify-content: space-between; align-items: center;">
+        {% if next_gw %}
+            <a href="{% url 'gameweek_builder_gw' gw=next_gw %}" style="color: #f59e0b; text-decoration: none; font-weight: bold; font-size: 0.9rem;">
+                Gameweek {{ next_gw }} &rarr;
+            </a>
+        {% else %}
+            <span style="visibility: hidden;">Next &rarr;</span>
+        {% endif %}
+    </div>
+
+    <!-- Prediction Submission Form -->
+    <form method="post" action="{% url 'gameweek_builder_gw' gw=current_gw %}">
+        {% csrf_token %}
+
+        {% for item in match_data %}
+        <div style="background-color: #1a1d24; border: 1px solid #2d323e; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
             
-            <!-- Home Team -->
-            <div class="team-box" style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                <img src="{% static match.home_team.logo_url %}" class="badge-img" style="width: 32px; height: 32px;">
-                <strong>{{ match.home_team.name }}</strong>
+            <!-- Match Index / Number -->
+            <div style="color: #6b7280; font-weight: bold; font-size: 0.85rem; min-width: 28px;">
+                #{{ forloop.counter }}
             </div>
 
-            <!-- Score Inputs / VS Box -->
-            <div class="vs-box" style="text-align: center; flex: 0.8; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <input type="number" name="home_goals_{{ match.id }}" value="{{ match.home_goals|default:'' }}" min="0" max="20" style="width: 45px; text-align: center; padding: 5px; font-weight: bold;">
-                <span style="font-weight: bold; color: #f59e0b;">-</span>
-                <input type="number" name="away_goals_{{ match.id }}" value="{{ match.away_goals|default:'' }}" min="0" max="20" style="width: 45px; text-align: center; padding: 5px; font-weight: bold;">
+            <!-- Home Team Info -->
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-end; min-width: 140px;">
+                <span style="color: #ffffff; font-weight: 600; text-align: right; font-size: 0.95rem;">{{ item.match.home_team.name }}</span>
+                {% if item.match.home_team.logo_url %}
+                    <img src="{% static item.match.home_team.logo_url %}" alt="{{ item.match.home_team.name }}" style="width: 26px; height: 26px; object-fit: contain;">
+                {% endif %}
             </div>
 
-            <!-- Away Team -->
-            <div class="team-box away" style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex: 1;">
-                <strong>{{ match.away_team.name }}</strong>
-                <img src="{% static match.away_team.logo_url %}" class="badge-img" style="width: 32px; height: 32px;">
+            <!-- Score Inputs (Reading from User MatchPrediction) -->
+            <div style="display: flex; align-items: center; gap: 8px; background-color: #111318; padding: 6px 14px; border-radius: 6px; border: 1px solid #2d323e;">
+                <input type="number" 
+                       name="home_goals_{{ item.match.id }}" 
+                       value="{% if item.prediction %}{{ item.prediction.home_goals }}{% endif %}" 
+                       min="0" 
+                       max="20" 
+                       placeholder="-"
+                       style="width: 44px; text-align: center; background-color: #222630; color: #f59e0b; border: 1px solid #3f445b; border-radius: 4px; padding: 4px; font-weight: bold; font-size: 1rem; outline: none;">
+                
+                <span style="font-weight: bold; color: #9ca3af; font-size: 0.9rem;">:</span>
+                
+                <input type="number" 
+                       name="away_goals_{{ item.match.id }}" 
+                       value="{% if item.prediction %}{{ item.prediction.away_goals }}{% endif %}" 
+                       min="0" 
+                       max="20" 
+                       placeholder="-"
+                       style="width: 44px; text-align: center; background-color: #222630; color: #f59e0b; border: 1px solid #3f445b; border-radius: 4px; padding: 4px; font-weight: bold; font-size: 1rem; outline: none;">
+                
+                {% if item.match.is_completed %}
+                    <span style="background-color: #064e3b; color: #34d399; font-size: 0.65rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">
+                        LOCKED
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Away Team Info -->
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; justify-content: flex-start; min-width: 140px;">
+                {% if item.match.away_team.logo_url %}
+                    <img src="{% static item.match.away_team.logo_url %}" alt="{{ item.match.away_team.name }}" style="width: 26px; height: 26px; object-fit: contain;">
+                {% endif %}
+                <span style="color: #ffffff; font-weight: 600; font-size: 0.95rem;">{{ item.match.away_team.name }}</span>
+            </div>
+
+            <!-- Date, Time & Deep Focus Link -->
+            <div style="display: flex; flex-direction: column; align-items: flex-end; min-width: 130px; font-size: 0.75rem; color: #9ca3af;">
+                {% if item.match.date %}
+                    <span>📅 {{ item.match.date|date:"D, d M" }} {% if item.match.time %}- {{ item.match.time|time:"H:i" }}{% endif %}</span>
+                {% endif %}
+                <a href="{% url 'match_focus' match_id=item.match.id %}" style="color: #38bdf8; text-decoration: none; margin-top: 3px; font-weight: 500;">
+                    🔍 Match Focus
+                </a>
             </div>
 
         </div>
-
-        <div style="text-align: center; margin-top: 8px;">
-            <a href="{% url 'match_focus' match_id=match.id %}" style="font-size: 0.8em; color: #9ca3af; text-decoration: underline;">🔍 Focus View</a>
+        {% empty %}
+        <div style="text-align: center; color: #9ca3af; padding: 40px; background-color: #1a1d24; border-radius: 8px; border: 1px solid #2d323e;">
+            No fixtures scheduled for Gameweek {{ current_gw }}.
         </div>
-    </div>
-    {% endfor %}
+        {% endfor %}
 
-    <div style="text-align: center; margin-top: 25px;">
-        <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em; cursor: pointer;">Save Gameweek {{ current_gw }} Scores</button>
-    </div>
-</form>
+        <!-- Save Button -->
+        {% if match_data %}
+        <div style="text-align: center; margin-top: 24px; margin-bottom: 40px;">
+            <button type="submit" style="background-color: #f59e0b; color: #000000; border: none; padding: 12px 32px; font-weight: bold; border-radius: 6px; font-size: 1rem; cursor: pointer; transition: background-color 0.2s;">
+                Save Gameweek {{ current_gw }} Predictions
+            </button>
+        </div>
+        {% endif %}
+    </form>
+
+</div>
 {% endblock %}

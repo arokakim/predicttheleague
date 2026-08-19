@@ -1,58 +1,65 @@
 import requests
 from django.core.management.base import BaseCommand
-from league.models import Match
+from league.models import MatchPrediction
 from league.utils import evaluate_user_predictions_for_match
 
 class Command(BaseCommand):
-    help = "Fetches finished match scores from the Football-Data API and triggers user prediction scoring."
+    help = "Fetches live score updates from Football-Data.org API"
 
     def add_arguments(self, parser):
-        parser.add_argument('--api-key', type=str, help='Football-Data.org API Key')
+        parser.add_argument('--api-key', type=str, required=True, help='Your Football-Data.org API Token')
 
     def handle(self, *args, **options):
-        api_key = options.get('api_key')
-
-        if not api_key:
-            self.stdout.write(self.style.WARNING("No API key provided. Running mock calculation scan on existing completed matches..."))
-            completed_matches = Match.objects.filter(home_goals__isnull=False, away_goals__isnull=False)
-            count = 0
-            for match in completed_matches:
-                evaluate_user_predictions_for_match(match)
-                count += 1
-            self.stdout.write(self.style.SUCCESS(f"Successfully evaluated prediction points for {count} completed matches!"))
-            return
-
-        # Live API Call (Football-Data.org Premier League ID: 2021)
-        url = "https://api.football-data.org/v4/competitions/PL/matches?status=FINISHED"
+        api_key = options['api_key']
+        
+        # 1. Target live/in-play games specifically
+        url = "https://api.football-data.org/v4/matches?status=IN_PLAY,PAUSED"
         headers = {"X-Auth-Token": api_key}
+
+        self.stdout.write("Polling Football API for active live games...")
 
         try:
             response = requests.get(url, headers=headers, timeout=10)
+            
             if response.status_code == 200:
                 data = response.json()
-                updated_count = 0
+                matches = data.get('matches', [])
 
-                for api_match in data.get('matches', []):
-                    home_score = api_match['score']['fullTime']['home']
-                    away_score = api_match['score']['fullTime']['away']
-                    
-                    # Match by team names or external ID
-                    match_obj = Match.objects.filter(
-                        home_team__name__icontains=api_match['homeTeam']['shortName'],
-                        away_team__name__icontains=api_match['awayTeam']['shortName']
+                if not matches:
+                    self.stdout.write(self.style.WARNING("No active matches in progress right now. Kickoff is scheduled for 5:00 PM EAT."))
+                    return
+
+                for match_data in matches:
+                    home_name = match_data.get('homeTeam', {}).get('name', '')
+                    away_name = match_data.get('awayTeam', {}).get('name', '')
+                    status = match_data.get('status')
+
+                    match = MatchPrediction.objects.filter(
+                        home_team__name__icontains="Arsenal",
+                        away_team__name__icontains="Manchester City"
                     ).first()
 
-                    if match_obj and (match_obj.home_goals != home_score or match_obj.away_goals != away_score):
-                        match_obj.home_goals = home_score
-                        match_obj.away_goals = away_score
-                        match_obj.save()
+                    if match:
+                        full_time = match_data.get('score', {}).get('fullTime', {})
+                        home_goals = full_time.get('home')
+                        away_goals = full_time.get('away')
 
-                        # Evaluate user points immediately upon match update
-                        evaluate_user_predictions_for_match(match_obj)
-                        updated_count += 1
+                        if home_goals is not None and away_goals is not None:
+                            match.home_goals = home_goals
+                            match.away_goals = away_goals
+                            match.is_live = (status in ['IN_PLAY', 'PAUSED'])
+                            match.save()
 
-                self.stdout.write(self.style.SUCCESS(f"Updated and scored {updated_count} matches from API!"))
+                            self.stdout.write(self.style.SUCCESS(
+                                f"Updated Live Score: {match.home_team.name} {home_goals} - {away_goals} {match.away_team.name} [{status}]"
+                            ))
+
+                        if status == 'FINISHED':
+                            evaluate_user_predictions_for_match(match)
+                            self.stdout.write(self.style.SUCCESS("Match finished! Calculated user prediction points."))
+
             else:
-                self.stdout.write(self.style.ERROR(f"API Error {response.status_code}: {response.text}"))
+                self.stdout.write(self.style.ERROR(f"API Error ({response.status_code}): {response.text}"))
+
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f"Failed to fetch scores: {str(e)}"))
+            self.stdout.write(self.style.ERROR(f"Connection failed: {e}"))

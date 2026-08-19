@@ -1,13 +1,13 @@
-import os
-import django
-import re
 from datetime import datetime
+import os
+import re
+import django
 from django.db import connection
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 django.setup()
 
-from league.models import Team, MatchPrediction
+from league.models import MatchPrediction, Team
 
 TEAM_ALIASES = {
     "Tottenham Hotspur": "Tottenham",
@@ -38,7 +38,7 @@ TEAM_ALIASES = {
     "AFC Bournemouth": "Bournemouth",
 }
 
-# Exact mapping to your static folder filenames inside static/league/logos/
+# Exact mapping to static folder filenames inside static/league/logos/
 LOCAL_LOGOS = {
     "Arsenal": "league/logos/arsenal-FC-v2002.png",
     "Aston Villa": "league/logos/aston-Villa-Football-Club-v2024.png",
@@ -62,16 +62,17 @@ LOCAL_LOGOS = {
     "Tottenham": "league/logos/tottenham-Hotspur-Football-Club-v2024.png",
 }
 
+
 def clean_team_name(name):
     name = name.strip()
     if name in TEAM_ALIASES:
         return TEAM_ALIASES[name]
-    name = re.sub(r'\b(FC|AFC)\b', '', name).strip()
-    return name
+    return re.sub(r'\b(FC|AFC)\b', '', name).strip()
+
 
 def get_team_logo(clean_name):
-    # Returns relative path for Django static files tag
     return LOCAL_LOGOS.get(clean_name, "league/logos/default.png")
+
 
 def parse_openfootball_txt(file_path='1-premierleague.txt'):
     print("Clearing old data and resetting primary key IDs to 1...")
@@ -80,12 +81,14 @@ def parse_openfootball_txt(file_path='1-premierleague.txt'):
 
     with connection.cursor() as cursor:
         cursor.execute("DELETE FROM sqlite_sequence WHERE name='league_team';")
-        cursor.execute("DELETE FROM sqlite_sequence WHERE name='league_matchprediction';")
+        cursor.execute(
+            "DELETE FROM sqlite_sequence WHERE name='league_matchprediction';"
+        )
 
     print(f"Parsing raw text file: {file_path}...")
-    
+
     current_matchday = 0
-    current_date_str = None
+    current_date_obj = None
     processed_count = 0
 
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -94,19 +97,28 @@ def parse_openfootball_txt(file_path='1-premierleague.txt'):
             if not line:
                 continue
 
-            matchday_match = re.search(r'Matchday\s+(\d+)', line, re.IGNORECASE)
+            matchday_match = re.search(
+                r'Matchday\s+(\d+)', line, re.IGNORECASE
+            )
             if matchday_match:
                 current_matchday = int(matchday_match.group(1))
                 continue
 
-            date_match = re.search(r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3})\s+(\d+)(?:\s+(\d{4}))?', line)
+            date_match = re.search(
+                r'^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+([A-Za-z]{3})\s+(\d+)(?:\s+(\d{4}))?',
+                line,
+            )
             if date_match:
                 month_str = date_match.group(2)
                 day_num = date_match.group(3)
-                year_num = date_match.group(4) if date_match.group(4) else "2026"
-                
-                parsed_dt = datetime.strptime(f"{month_str} {day_num} {year_num}", "%b %d %Y")
-                current_date_str = parsed_dt.strftime("%Y-%m-%d")
+                year_num = (
+                    date_match.group(4) if date_match.group(4) else "2026"
+                )
+
+                parsed_dt = datetime.strptime(
+                    f"{month_str} {day_num} {year_num}", "%b %d %Y"
+                )
+                current_date_obj = parsed_dt.date()
                 continue
 
             if ' v ' in line:
@@ -116,10 +128,13 @@ def parse_openfootball_txt(file_path='1-premierleague.txt'):
 
                 time_match = re.match(r'^(\d{1,2}:\d{2})\s+(.+)$', left_part)
                 if time_match:
-                    kickoff_time = time_match.group(1)
+                    kickoff_str = time_match.group(1)
                     home_raw = time_match.group(2)
+                    kickoff_obj = datetime.strptime(
+                        kickoff_str, "%H:%M"
+                    ).time()
                 else:
-                    kickoff_time = None
+                    kickoff_obj = None
                     home_raw = left_part
 
                 home_name = clean_team_name(home_raw)
@@ -127,23 +142,26 @@ def parse_openfootball_txt(file_path='1-premierleague.txt'):
 
                 home_team, _ = Team.objects.get_or_create(
                     name=home_name,
-                    defaults={'logo_url': get_team_logo(home_name)}
+                    defaults={'logo_url': get_team_logo(home_name)},
                 )
                 away_team, _ = Team.objects.get_or_create(
                     name=away_name,
-                    defaults={'logo_url': get_team_logo(away_name)}
+                    defaults={'logo_url': get_team_logo(away_name)},
                 )
 
                 MatchPrediction.objects.create(
                     gameweek=current_matchday,
                     home_team=home_team,
                     away_team=away_team,
-                    match_date=current_date_str,
-                    kickoff_time=kickoff_time
+                    date=current_date_obj,
+                    time=kickoff_obj,
                 )
                 processed_count += 1
 
-    print(f"SUCCESS: Seeding complete with local PNG paths!")
+    print(
+        f"SUCCESS: Seeding complete! {processed_count} fixtures populated with logos, dates, and times."
+    )
+
 
 if __name__ == '__main__':
     parse_openfootball_txt()

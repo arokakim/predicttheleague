@@ -1,0 +1,78 @@
+{% extends 'league/base.html' %}
+{% load static %}
+
+{% block title %}Official Premier League Standings{% endblock %}
+
+{% block content %}
+<div style="width: 100%; min-height: 600px; background-color: #1a1d24; padding: 10px; border-radius: 8px;">
+    <iframe 
+        src="https://www.widgets.livesport.com/standings/?type=1&id=1" 
+        width="100%" 
+        height="600" 
+        frameborder="0" 
+        scrolling="no"
+        style="border: none; border-radius: 8px;">
+    </iframe>
+</div>
+<div style="max-width: 900px; margin: 0 auto; padding: 20px 10px; font-family: system-ui, -apple-system, sans-serif;">
+
+    <!-- Navigation Header / Sub-tabs -->
+    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1a1d24; padding: 12px 20px; border-radius: 8px; border: 1px solid #2d323e; margin-bottom: 20px;">
+        <h2 style="color: #ffffff; margin: 0; font-size: 1.3rem; font-weight: bold;">🏆 Official Premier League Table</h2>
+        
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'standings' %}" style="padding: 6px 12px; background-color: #222630; color: #9ca3af; text-decoration: none; border-radius: 6px; font-size: 0.85rem; font-weight: 600; border: 1px solid #3f445b;">
+                📊 My Predicted Table
+            </a>
+            <span style="padding: 6px 12px; background-color: #f59e0b; color: #000000; border-radius: 6px; font-size: 0.85rem; font-weight: bold;">
+                Official Table
+            </span>
+        </div>
+    </div>
+
+    <!-- Official Standings Table -->
+    <div style="background-color: #1a1d24; border: 1px solid #2d323e; border-radius: 8px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; color: #e5e7eb; font-size: 0.9rem;">
+            <thead>
+                <tr style="background-color: #111318; border-bottom: 1px solid #2d323e; color: #9ca3af; font-size: 0.8rem; text-transform: uppercase;">
+                    <th style="padding: 12px 16px; text-align: center; width: 40px;">#</th>
+                    <th style="padding: 12px 16px;">Club</th>
+                    <th style="padding: 12px 16px; text-align: center;">MP</th>
+                    <th style="padding: 12px 16px; text-align: center;">W</th>
+                    <th style="padding: 12px 16px; text-align: center;">D</th>
+                    <th style="padding: 12px 16px; text-align: center;">L</th>
+                    <th style="padding: 12px 16px; text-align: center;">GF</th>
+                    <th style="padding: 12px 16px; text-align: center;">GA</th>
+                    <th style="padding: 12px 16px; text-align: center;">GD</th>
+                    <th style="padding: 12px 16px; text-align: center; font-weight: bold; color: #f59e0b;">Pts</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in table %}
+                <tr style="border-bottom: 1px solid #2d323e; background-color: {% if forloop.counter|divisibleby:2 %}#1a1d24{% else %}#16181f{% endif %};">
+                    <td style="padding: 10px 16px; text-align: center; font-weight: bold; color: #9ca3af;">
+                        {{ row.rank }}
+                    </td>
+                    <td style="padding: 10px 16px; font-weight: 600; color: #ffffff;">
+                        {{ row.team }}
+                    </td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.mp }}</td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.w }}</td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.d }}</td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.l }}</td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.gf }}</td>
+                    <td style="padding: 10px 16px; text-align: center;">{{ row.ga }}</td>
+                    <td style="padding: 10px 16px; text-align: center; color: {% if row.gd > 0 %}#10b981{% elif row.gd < 0 %}#ef4444{% else %}#9ca3af{% endif %}; font-weight: 600;">
+                        {% if row.gd > 0 %}+{% endif %}{{ row.gd }}
+                    </td>
+                    <td style="padding: 10px 16px; text-align: center; font-weight: bold; color: #f59e0b; font-size: 0.95rem;">
+                        {{ row.pts }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}

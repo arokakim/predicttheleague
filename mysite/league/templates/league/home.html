@@ -1,104 +1,169 @@
 {% extends 'league/base.html' %}
 {% load static %}
 
-{% block title %}MatchPredictor | Home Hub{% endblock %}
+{% block title %}MatchPredictor | Dashboard{% endblock %}
 
 {% block content %}
-<div style="max-width: 950px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px;">
+<div style="max-width: 1020px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; font-family: system-ui, -apple-system, sans-serif;">
 
     {% if messages %}
         {% for message in messages %}
-            <div style="padding: 12px; background-color: #10b981; color: white; border-radius: 6px; font-weight: bold;">
-                {{ message }}
+            <div style="padding: 14px 18px; background-color: #059669; color: #ffffff; border-radius: 8px; font-weight: 600; border-left: 5px solid #34d399; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+                ✓ {{ message }}
             </div>
         {% endfor %}
     {% endif %}
 
-    <!-- 🔴 Dynamic Live Games Banner (Appears when games are in-play) -->
-    {% if live_matches %}
-        <div style="background-color: #7f1d1d; border: 2px solid #ef4444; padding: 20px; border-radius: 8px;">
-            <h2 style="margin: 0 0 15px 0; color: #f87171; display: flex; align-items: center; gap: 10px;">
-                <span style="animation: pulse 1s infinite;">🔴</span> LIVE MATCH UPDATES
-            </h2>
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                {% for m in live_matches %}
-                    <div style="display: flex; justify-content: space-between; align-items: center; background-color: #1e2130; padding: 15px; border-radius: 6px;">
-                        <span style="font-weight: bold; width: 40%; text-align: right;">{{ m.home_team.name }}</span>
-                        <span style="font-size: 1.4em; font-weight: bold; color: #f59e0b; padding: 0 15px;">
-                            {{ m.home_goals|default:0 }} - {{ m.away_goals|default:0 }}
-                        </span>
-                        <span style="font-weight: bold; width: 40%; text-align: left;">{{ m.away_team.name }}</span>
+    <!-- TOP ROW: FEATURED MATCH vs LIVE FEED -->
+    <div style="display: grid; grid-template-columns: 1.6fr 1.1fr; gap: 20px; align-items: stretch;">
+        
+        <!-- FEATURED MATCH CARD -->
+        {% if featured_match %}
+        <div style="background-color: #0f172a; border: 2px solid #fbbf24; padding: 24px; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden;">
+            <div style="position: absolute; top: 0; right: 0; background-color: #fbbf24; color: #0f172a; font-size: 0.7em; font-weight: 800; padding: 6px 14px; border-bottom-left-radius: 10px; letter-spacing: 0.05em; text-transform: uppercase;">
+                FEATURED MATCH
+            </div>
+
+            <div style="text-align: center; margin-top: 10px;">
+                <p style="color: #94a3b8; font-size: 0.8em; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">FA Community Shield • Principality Stadium</p>
+                <h2 style="margin: 0; color: #f8fafc; font-size: 1.8em; font-weight: 800;">
+                    {{ featured_match.home_team.name }} <span style="color: #fbbf24; font-style: italic;">VS</span> {{ featured_match.away_team.name }}
+                </h2>
+            </div>
+
+            <form method="POST" style="display: flex; justify-content: center; align-items: center; gap: 12px; background-color: #1e293b; padding: 14px 18px; border-radius: 10px; border: 1px solid #334155; margin-top: 20px;">
+                {% csrf_token %}
+                <input type="hidden" name="match_id" value="{{ featured_match.id }}">
+                
+                <span style="font-weight: 700; color: #f1f5f9; font-size: 0.95em; text-align: right; min-width: 90px;">{{ featured_match.home_team.name }}</span>
+                <input type="number" name="home_goals" placeholder="0" min="0" max="15" required style="width: 48px; text-align: center; padding: 8px 4px; font-weight: 800; font-size: 1.1em; background-color: #0f172a; color: #fbbf24; border: 1px solid #64748b; border-radius: 6px;">
+                <span style="font-weight: 900; color: #64748b;">:</span>
+                <input type="number" name="away_goals" placeholder="0" min="0" max="15" required style="width: 48px; text-align: center; padding: 8px 4px; font-weight: 800; font-size: 1.1em; background-color: #0f172a; color: #fbbf24; border: 1px solid #64748b; border-radius: 6px;">
+                <span style="font-weight: 700; color: #f1f5f9; font-size: 0.95em; min-width: 90px;">{{ featured_match.away_team.name }}</span>
+
+                {% if user.is_authenticated %}
+                    <button type="submit" style="padding: 9px 18px; background-color: #fbbf24; color: #0f172a; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; transition: transform 0.1s ease;">
+                        Submit
+                    </button>
+                {% endif %}
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- LIVE COMMENTARY FEED WITH RUNNING SCORE & TIMER -->
+        <div style="background-color: #1e1215; border: 1px solid #881337; padding: 20px; border-radius: 12px; display: flex; flex-direction: column;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #4c0519; padding-bottom: 8px;">
+                <h3 style="margin: 0; color: #f87171; font-size: 1em; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                    <span style="height: 10px; width: 10px; background-color: #ef4444; border-radius: 50%; display: inline-block;"></span> Live Match Feed
+                </h3>
+                
+                {% if live_match %}
+                <div class="live-badge" style="background-color: #312e81; color: #fbbf24; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.88em; border: 1px solid #4338ca;">
+                    {% if live_match.minute %}
+                        <span style="color: #ef4444; font-weight: 900; margin-right: 6px;">{{ live_match.minute }}'</span>
+                    {% endif %}
+                    {{ live_match.home_team.name }} {{ live_match.home_goals|default:0 }} - {{ live_match.away_goals|default:0 }} {{ live_match.away_team.name }}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div style="flex-grow: 1; max-height: 170px; overflow-y: auto; background-color: #0f0a0a; padding: 12px; border-radius: 8px; font-size: 0.85em; color: #e2e8f0; border: 1px solid #310710;">
+                {% if live_commentary %}
+                    {% for event in live_commentary %}
+                        <div style="margin-bottom: 10px; border-bottom: 1px solid #27060e; padding-bottom: 6px; display: flex; gap: 8px;">
+                            <span style="color: #fbbf24; font-weight: 800; min-width: 28px;">{{ event.minute }}'</span>
+                            <span style="color: #f1f5f9;">{{ event.description }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9f1239; text-align: center; padding: 20px 0;">
+                        <p style="margin: 0; font-size: 0.9em; color: #fda4af; font-weight: 600;">No Active Match Signal</p>
+                        <p style="margin: 4px 0 0 0; font-size: 0.78em; color: #881337;">Updates stream here automatically at kickoff.</p>
                     </div>
-                {% endfor %}
+                {% endif %}
             </div>
         </div>
-    {% endif %}
 
-    <!-- Main Grid: Upcoming Matches & Interactive Predictor -->
-    <div style="display: grid; grid-template-columns: 1.8fr 1fr; gap: 20px;">
-        
-        <!-- Interactive Upcoming Fixtures -->
-        <div style="background-color: #1e2130; padding: 20px; border-radius: 8px; border: 1px solid #3f445b;">
-            <h3 style="margin-top: 0; color: #10b981;">📅 Upcoming Matches & Predictor</h3>
+    </div>
+
+    <!-- BOTTOM ROW: TOP 4 STANDINGS vs SAVED PREDICTIONS -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+
+        <!-- TOP 4 LEAGUE TABLE -->
+        <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; border: 1px solid #334155;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; color: #34d399; font-size: 1.05em; font-weight: 700;">📊 Premier League Top 4</h3>
+                <a href="{% url 'standings' %}" style="color: #38bdf8; text-decoration: none; font-size: 0.8em; font-weight: 700;">Full Table →</a>
+            </div>
             
-            {% if upcoming_matches %}
-                <div style="display: flex; flex-direction: column; gap: 15px;">
-                    {% for m in upcoming_matches %}
-                        <form method="POST" style="display: flex; align-items: center; justify-content: space-between; background: #2a2d3d; padding: 12px; border-radius: 6px;">
-                            {% csrf_token %}
-                            <input type="hidden" name="match_id" value="{{ m.id }}">
-
-                            <!-- Home Team -->
-                            <span style="font-weight: bold; width: 35%; text-align: right; font-size: 0.95em;">
-                                {{ m.home_team.name }}
-                            </span>
-
-                            <!-- Goals Input Controls -->
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <input type="number" name="home_goals" min="0" max="15" required style="width: 40px; text-align: center; padding: 5px; font-weight: bold;">
-                                <span style="font-weight: bold; color: #9ca3af;">:</span>
-                                <input type="number" name="away_goals" min="0" max="15" required style="width: 40px; text-align: center; padding: 5px; font-weight: bold;">
-                            </div>
-
-                            <!-- Away Team -->
-                            <span style="font-weight: bold; width: 35%; text-align: left; font-size: 0.95em;">
-                                {{ m.away_team.name }}
-                            </span>
-
-                            <!-- Action Button -->
-                            {% if user.is_authenticated %}
-                                <button type="submit" style="padding: 6px 12px; background-color: #f59e0b; color: #1e2130; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
-                                    Save
-                                </button>
-                            {% endif %}
-                        </form>
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88em;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #334155; color: #94a3b8; font-size: 0.8em; text-transform: uppercase;">
+                        <th style="padding: 8px 6px;">Pos</th>
+                        <th style="padding: 8px 6px;">Club</th>
+                        <th style="padding: 8px 6px; text-align: center;">PTS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in top_4_table %}
+                    <tr style="border-bottom: 1px solid #0f172a;">
+                        <td style="padding: 10px 6px; font-weight: 800; color: #38bdf8;">#{{ forloop.counter }}</td>
+                        <td style="padding: 10px 6px; color: #f8fafc; font-weight: 600;">{{ row.team.name }}</td>
+                        <td style="padding: 10px 6px; text-align: center; font-weight: 800; color: #34d399;">{{ row.points }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: #64748b; padding: 20px 0;">Standings calculate automatically after Gameweek 1.</td>
+                    </tr>
                     {% endfor %}
-                </div>
-            {% else %}
-                <p style="color: #9ca3af;">No upcoming fixtures scheduled.</p>
-            {% endif %}
+                </tbody>
+            </table>
         </div>
 
-        <!-- Sidebar: Top Predictors -->
-        <div style="background-color: #1e2130; padding: 20px; border-radius: 8px; border: 1px solid #3f445b; height: fit-content;">
-            <h3 style="margin-top: 0; color: #f59e0b;">🏆 Top Predictors</h3>
-            {% if top_predictors %}
-                <ol style="padding-left: 20px; margin: 0;">
-                    {% for profile in top_predictors %}
-                        <li style="padding: 6px 0; border-bottom: 1px solid #2d3248;">
-                            <strong>{{ profile.user.username }}</strong>
-                            <span style="float: right; color: #10b981; font-weight: bold;">
-                                {{ profile.points|default:"0" }} pts
-                            </span>
-                        </li>
-                    {% endfor %}
-                </ol>
+        <!-- USER PREDICTIONS WITH PREDICTED SCORES -->
+        <div style="background-color: #1e1b4b; padding: 20px; border-radius: 12px; border: 1px solid #3730a3;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; color: #a78bfa; font-size: 1.05em; font-weight: 700;">🎯 Saved Predictions</h3>
+                <span style="font-size: 0.75em; color: #c084fc; background-color: #312e81; padding: 2px 8px; border-radius: 4px;">User Log</span>
+            </div>
+
+            {% if user.is_authenticated %}
+                {% if user_predictions %}
+                    <ul style="list-style: none; padding: 0; margin: 0; max-height: 180px; overflow-y: auto;">
+                        {% for item in user_predictions %}
+                            <li style="padding: 10px 12px; margin-bottom: 6px; background-color: #111827; border-radius: 6px; border: 1px solid #1f2937; display: flex; justify-content: space-between; align-items: center; font-size: 0.88em;">
+                                <span style="color: #e5e7eb; font-weight: 500;">
+                                    {{ item.match.home_team.name }} <span style="color: #6b7280;">vs</span> {{ item.match.away_team.name }}
+                                </span>
+                                
+                                <span style="color: #fbbf24; font-weight: 800; background-color: #312e81; padding: 3px 10px; border-radius: 6px; font-size: 0.85em; border: 1px solid #4338ca;">
+                                    {% if item.home_goals is not None and item.away_goals is not None %}
+                                        {{ item.home_goals }} - {{ item.away_goals }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p style="color: #818cf8; font-size: 0.85em; margin-top: 20px; text-align: center;">No predictions recorded yet. Submit a scoreline above to log your forecast.</p>
+                {% endif %}
             {% else %}
-                <p style="color: #9ca3af;">No points scored yet.</p>
+                <p style="color: #818cf8; font-size: 0.85em; margin-top: 20px; text-align: center;">Log in to store and track your submitted match scorelines.</p>
             {% endif %}
         </div>
 
     </div>
 
 </div>
+
+{% if live_match %}
+<script>
+    // Auto-refresh the page every 5 minutes (300,000 ms) to keep score and timer live
+    setTimeout(function() {
+        window.location.reload();
+    }, 300000);
+</script>
+{% endif %}
 {% endblock %}

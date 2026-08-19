@@ -17,10 +17,18 @@
         <div style="display: flex; justify-content: space-around; align-items: center; margin: 25px 0;">
             <!-- Home Team -->
             <div style="flex: 1;">
-                <img src="{% static match.home_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
-                <h2 style="margin-top: 10px; font-size: 1.3em;">{{ match.home_team.name }}</h2>
+                {% if match.home_team.logo_url %}
+                    <img src="{% static match.home_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
+                {% endif %}
+                <h2 style="margin-top: 10px; font-size: 1.3em; color: #ffffff;">{{ match.home_team.name }}</h2>
                 <div style="margin-top: 15px;">
-                    <input type="number" name="home_goals" value="{{ match.home_goals|default:'' }}" min="0" max="20" placeholder="0" style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b;">
+                    <input type="number" 
+                           name="home_goals" 
+                           value="{% if user_pred %}{{ user_pred.home_goals }}{% endif %}" 
+                           min="0" 
+                           max="20" 
+                           placeholder="0" 
+                           style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b; background-color: #222630; color: #f59e0b;">
                 </div>
             </div>
 
@@ -31,16 +39,26 @@
 
             <!-- Away Team -->
             <div style="flex: 1;">
-                <img src="{% static match.away_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
-                <h2 style="margin-top: 10px; font-size: 1.3em;">{{ match.away_team.name }}</h2>
+                {% if match.away_team.logo_url %}
+                    <img src="{% static match.away_team.logo_url %}" style="width: 80px; height: 80px; object-fit: contain;">
+                {% endif %}
+                <h2 style="margin-top: 10px; font-size: 1.3em; color: #ffffff;">{{ match.away_team.name }}</h2>
                 <div style="margin-top: 15px;">
-                    <input type="number" name="away_goals" value="{{ match.away_goals|default:'' }}" min="0" max="20" placeholder="0" style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b;">
+                    <input type="number" 
+                           name="away_goals" 
+                           value="{% if user_pred %}{{ user_pred.away_goals }}{% endif %}" 
+                           min="0" 
+                           max="20" 
+                           placeholder="0" 
+                           style="width: 60px; height: 50px; font-size: 1.5em; text-align: center; border-radius: 6px; border: 1px solid #3f445b; background-color: #222630; color: #f59e0b;">
                 </div>
             </div>
         </div>
 
         <div style="margin-top: 25px;">
-            <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em; cursor: pointer;">Save Score</button>
+            <button type="submit" style="padding: 12px 30px; font-weight: bold; font-size: 1em; cursor: pointer; background-color: #f59e0b; color: #000; border: none; border-radius: 6px;">
+                Save Score
+            </button>
         </div>
     </form>
 </div>
@@ -48,13 +66,13 @@
 <!-- Prev / Next Match Controls -->
 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
     {% if prev_match_id %}
-        <a href="{% url 'match_focus' match_id=prev_match_id %}">← Previous Match</a>
+        <a href="{% url 'match_focus' match_id=prev_match_id %}" style="color: #38bdf8; text-decoration: none;">← Previous Match</a>
     {% else %}
         <span></span>
     {% endif %}
 
     {% if next_match_id %}
-        <a href="{% url 'match_focus' match_id=next_match_id %}">Next Match →</a>
+        <a href="{% url 'match_focus' match_id=next_match_id %}" style="color: #38bdf8; text-decoration: none;">Next Match →</a>
     {% endif %}
 </div>
 {% endblock %}
